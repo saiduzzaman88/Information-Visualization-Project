@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>project_mdt014_ask172</title>
+</head>
+
+<body>
+    <p id = "head1" style=  "display: inline;"> ALBEDO (Click the map or button to see the EMISS data) </p> 
+    <button id='button1' style=  "background-color:rgb(7, 255, 7); display: inline;">ALBEDO</button>
+    <button id='button2' style=  "background-color:rgb(200, 0, 0); display: inline;">Emiss</button>
+    <button id='button3' style=  "background-color:rgb(0,0,255); display: inline;">GRDFLX</button>
+    <button id='button4'  style=  "background-color:rgb(0,200,200);">SMOIS</button>
+    <br>
+    <p style="color:red; display: inline;"> Note: Map might take upto 10 seconds to load. </p>
+    <p id="para1" style=  "display: inline;">  Showing 'ALBEDO' data intensity in differnt X,Y position by heat map.  </p>
+</body>
+
+<script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>  
+<script type="text/javascript">
+        //"https://d3js.org/d3.v5.min.js"
+        //"d3.v5.min.js"
+       //s1 = x axis ; s2 = y axis
+    
+	var dataset;
+    var flag1 = 0; var flag2 = 0; var consEmiss = 0.90000000; var currentEmiss = 0.000;
+    d3.csv("weather-canada.csv").then(function (data) {
+        dataset = data;
+          var width = '1150',
+            height = '650';
+        var svg = d3.select('body')
+            .append('svg')
+            .attr('width', width).attr('height', height);
+			//Creating X and Y axis
+	    /*var Xscale = d3.scaleLinear()
+		       .domain([0,3200])
+               .range([0, width - 140]);
+			  svg.append("g")
+             .call(d3.axisBottom(Xscale));
+		var Yscale = d3.scaleLinear()
+			 .domain([0,1600])
+               .range([0, height - 210]);
+			  svg.append("g")
+             .call(d3.axisRight(Yscale));*/			
+        var circles = svg.selectAll('circle')
+            .data(dataset)
+            .enter()
+            .append('circle')
+            .attr("cx", function (d,i) {
+                 return  1.8*d.x; 
+            })
+            .attr("cy", function (d,i) { 
+                return height - d.y; 
+        })
+        .attr("r", 5)
+        .attr("fill", function (d) {
+            if(d.ALBEDO <= 0.1){
+                return "Black"; //albedo green
+            }
+            else if(d.ALBEDO <= 0.528294327 && d.ALBEDO > 0.1){
+                return "#7fc97f";
+            }
+            else{
+                return "#beaed4";
+            }
+            //return "rgb(0,"+ d.ALBEDO*200 +",0)"; //albedo green
+        });
+
+        svg.append("text").data(dataset)
+		.text("X Axis--->")
+		.attr("x", 1050).attr("y", 630)
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "18px")
+        .attr("fill", "Yellow");
+        svg.append("text").data(dataset)
+		.text("Y Axis")
+		.attr("x", 20).attr("y", 30)
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "18px")
+        .attr("fill", "Yellow");
+        svg.append("text").data(dataset)
+		.text("(0,0)")
+		.attr("x", 20).attr("y", 630)
+        .attr("font-family", "sans-serif")
+        .attr("font-size", "18px")
+        .attr("fill", "Yellow");
+
+        var count=1;
+				//On click, update with new data 
+				d3.select("svg")
+        .on("click", function(d) {
+			
+			if(count == 1){                //emiss red
+                count = 2;
+                document.getElementById("head1").innerHTML = "EMISS (Click the map or button to see the GRDFLX data) ";
+                document.getElementById("para1").innerHTML = "Showing 'EMISS' data intensity in differnt X,Y position by heat map.";
+                 svg.selectAll('circle')
+        .attr("fill", function (d) {
+            currentEmiss = d.EMISS - consEmiss;
+            return "rgb("+ currentEmiss*2500 +",0,0)";
+        });
+ 
+				}
+				
+				else if(count == 2){   //grdflx blue
+                    count = 3;
+                    document.getElementById("head1").innerHTML = "GRDFLX (Click the map or button to see the SMOIS data)";
+                    document.getElementById("para1").innerHTML = "Showing 'GRDFLX' data intensity in differnt X,Y position by heat map.";
+                 svg.selectAll('circle')
+                  .attr("fill", function (d) {
+            return "rgb(0,0,"+ d.GRDFLX*100 +")";
+        });
+				}
+                else if(count == 3){   //smois green + blue = sky
+                    count = 0;
+                    document.getElementById("head1").innerHTML = "SMOIS (Click the map or button to see the ALBEDO data)";
+                    document.getElementById("para1").innerHTML = "Showing 'SMOIS' data intensity in differnt X,Y position by heat map.";
+                 
+                 svg.selectAll('circle')
+                  .attr("fill", function (d) {
+            return "rgb(0,"+d.SMOIS*100+ "," + d.SMOIS*100 +")";
+        });
+				}
+                else if(count == 0){
+                    count = 1;
+                    document.getElementById("head1").innerHTML = "ALBEDO (Click the map or button to see the EMISS data)";
+                    document.getElementById("para1").innerHTML = "Showing 'ALBEDO' data intensity in differnt X,Y position by heat map.";
+                 
+                 svg.selectAll('circle')
+                  .attr("fill", function (d) {
+                    if(d.ALBEDO <= 0.1){
+                return "Black"; //albedo green
+            }
+            else if(d.ALBEDO <= 0.528294327 && d.ALBEDO > 0.1){
+                return "#7fc97f";
+            }
+            else{
+                return "#beaed4";
+            }
+            //return "rgb(0,"+ d.ALBEDO*100 +",0)";
+        });
+                }
+
+        });
+
+        //buttons
+
+        d3.select("#button1")
+        .on("click", function() {
+            document.getElementById("head1").innerHTML = "ALBEDO (Click the map or button to see the EMISS data)";
+                    document.getElementById("para1").innerHTML = "Showing 'ALBEDO' data intensity in differnt X,Y position by heat map.";
+                 
+                 svg.selectAll('circle')
+                  .attr("fill", function (d) {
+                    if(d.ALBEDO <= 0.1){
+                return "Black"; //albedo green
+            }
+            else if(d.ALBEDO <= 0.528294327 && d.ALBEDO > 0.1){
+                return "#7fc97f";
+            }
+            else{
+                return "#beaed4";
+            }
+           // return "rgb(0,"+ d.ALBEDO*100 +",0)";
+        });
+        });
+
+        d3.select("#button2")
+        .on("click", function() {
+            document.getElementById("head1").innerHTML = "EMISS (Click the map or button to see the GRDFLX data) ";
+                document.getElementById("para1").innerHTML = "Showing 'EMISS' data intensity in differnt X,Y position by heat map.";
+                 svg.selectAll('circle')
+        .attr("fill", function (d) {
+            currentEmiss = d.EMISS - consEmiss;
+            return "rgb("+ currentEmiss*2500 +",0,0)";
+        });
+        });
+
+        d3.select("#button3")
+        .on("click", function() {
+            document.getElementById("head1").innerHTML = "GRDFLX (Click the map or button to see the SMOIS data)";
+                    document.getElementById("para1").innerHTML = "Showing 'GRDFLX' data intensity in differnt X,Y position by heat map.";
+                 svg.selectAll('circle')
+                  .attr("fill", function (d) {
+            return "rgb(0,0,"+ d.GRDFLX*100 +")";
+        });
+        });
+
+        d3.select("#button4")
+        .on("click", function() {
+            document.getElementById("head1").innerHTML = "SMOIS (Click the map or button to see the ALBEDO data)";
+                    document.getElementById("para1").innerHTML = "Showing 'SMOIS' data intensity in differnt X,Y position by heat map.";
+                 
+                 svg.selectAll('circle')
+                  .attr("fill", function (d) {
+            return "rgb(0,"+d.SMOIS*100+ "," + d.SMOIS*100 +")";
+        });
+        });
+
+
+
+    });
+
+
+</script>
+
+</html>
